@@ -146,6 +146,41 @@ class UserManager():
                 return web.json_response({"error": str(e)}, status=400)
             return web.json_response(user_id)
 
+
+        # GET
+        @routes.get("/userdata/workflows/{rest:.*}")
+        async def get_workflows_encoded(request):
+            rest_path = request.match_info['rest']  # tout après /workflows/
+            
+            # encode tous les / pour ComfyUI
+            encoded_path = quote(rest_path, safe='')
+        
+            # reconstruit le path attendu par le handler existant
+            new_path = f"/userdata/workflows%2F{encoded_path}"
+        
+            # clone request pour passer au handler original
+            new_request = request.clone(rel_url=new_path)
+        
+            return await getuserdata(new_request)
+        
+        # POST
+        @routes.post("/userdata/workflows/{rest:.*}")
+        async def post_workflows_encoded(request):
+            rest_path = request.match_info['rest']
+            encoded_path = quote(rest_path, safe='')
+            new_path = f"/userdata/workflows%2F{encoded_path}"
+            new_request = request.clone(rel_url=new_path)
+            return await post_userdata(new_request)
+        
+        # DELETE
+        @routes.delete("/userdata/workflows/{rest:.*}")
+        async def delete_workflows_encoded(request):
+            rest_path = request.match_info['rest']
+            encoded_path = quote(rest_path, safe='')
+            new_path = f"/userdata/workflows%2F{encoded_path}"
+            new_request = request.clone(rel_url=new_path)
+            return await delete_userdata(new_request)
+        
         @routes.get("/userdata")
         async def listuserdata(request):
             """
